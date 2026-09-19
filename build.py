@@ -17,6 +17,7 @@ Re-run any time a .md file is added, removed or edited — the whole
 site regenerates from scratch, so dist/ never goes stale or drifts.
 """
 
+import os
 import re
 import shutil
 from datetime import date, datetime
@@ -163,6 +164,29 @@ def render_markdown_body(md_text: str):
 
 # ---------------------------------------------------------------- build
 
+def fix_permissions(path: Path):
+    """
+    Force standard, web-servable permissions (755 for directories, 644
+    for files) on everything under path, regardless of what permissions
+    the source had.
+
+    This matters because assets/ is copied from a bind-mounted host
+    folder (shutil.copytree preserves the source's original permission
+    bits by default) — and depending on how that folder was created on
+    the host (a restrictive umask during a git checkout, for instance),
+    it can end up unreadable by nginx's worker process, which runs as
+    an unprivileged user, not root. That produces a 403 on every static
+    asset while the HTML pages (written fresh by this script, inside
+    the container) work fine — a confusing split that looks like a
+    proxy or server misconfiguration but is really just inherited
+    permissions from whatever host this happens to be built on.
+    """
+    for root, dirs, files in os.walk(path):
+        os.chmod(root, 0o755)
+        for f in files:
+            os.chmod(os.path.join(root, f), 0o644)
+
+
 def load_categories():
     return yaml.safe_load(CATEGORIES_FILE.read_text())
 
@@ -280,6 +304,7 @@ def build():
             (out_dir / f"{guide['slug']}.html").write_text(page_html)
             print(f"wrote {cat['slug']}/{guide['slug']}.html")
 
+    fix_permissions(DIST_DIR)
     print(f"\nDone. Open dist/index.html or serve dist/ with any static file server.")
 
 
