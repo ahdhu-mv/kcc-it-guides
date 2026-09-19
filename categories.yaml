@@ -1,0 +1,17 @@
+# Defines the categories shown on the homepage, in display order.
+# The "slug" must match a folder name under content/.
+- slug: passwords-accounts
+  name: Passwords & accounts
+  color: "#0f6b62"
+
+- slug: applications
+  name: Applications
+  color: "#b8862f"
+
+- slug: hardware-network
+  name: Hardware & network
+  color: "#5b7fae"
+
+- slug: access-security
+  name: Access & security
+  color: "#a2483f"

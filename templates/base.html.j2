@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title }} — KCC IT Guides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ root }}assets/css/style.css">
+</head>
+<body>
+
+<header class="site">
+  <div class="site-bar">
+    <a class="brand" href="{{ root }}index.html">
+      <span class="mark">KCC</span>
+      <span class="name">IT Guides</span>
+    </a>
+    <nav class="site-nav">
+      <a href="{{ root }}index.html">All guides</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+{{ content }}
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span>KCC IT Section — internal use only</span>
+    <span>Kulhudhuffushi City Council</span>
+  </div>
+</footer>
+
+</body>
+</html>

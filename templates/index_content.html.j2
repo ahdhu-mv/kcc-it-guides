@@ -1,0 +1,85 @@
+<section class="hero">
+  <h1>Find the guide you need</h1>
+  <p class="sub">Step-by-step instructions for the applications, accounts and equipment used across KCC — written by the IT Section.</p>
+  <div class="search-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Search, e.g. &ldquo;reset password&rdquo; or &ldquo;printer&rdquo;">
+  </div>
+  <div class="hero-meta"><b>{{ guide_count }}</b> guide{{ '' if guide_count == 1 else 's' }} across <b>{{ category_count }}</b> categor{{ 'y' if category_count == 1 else 'ies' }} &nbsp;·&nbsp; generated {{ build_date }}</div>
+</section>
+
+<section class="index">
+  <div class="index-head">
+    <h2>Browse by category</h2>
+    <span id="result-count"></span>
+  </div>
+
+  <div id="categories">
+  {% for cat in categories %}
+    <div class="category" data-category>
+      <button class="category-toggle" type="button" aria-expanded="true" aria-controls="cat-body-{{ cat.slug }}">
+        <h3><span class="dot" style="background:{{ cat.color }}; color:{{ cat.color }}"></span>{{ cat.name }}</h3>
+        <span class="category-toggle-right">
+          <span class="count">{{ cat.guides|length }} guide{{ '' if cat.guides|length == 1 else 's' }}</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </span>
+      </button>
+      <div class="category-collapse" id="cat-body-{{ cat.slug }}">
+        <div class="category-collapse-inner">
+          {% for g in cat.guides %}
+          <a class="guide-row" data-guide-row data-search="{{ (g.title ~ ' ' ~ g.description)|lower }}" href="{{ root }}{{ g.url }}">
+            <div>
+              <div class="g-title">{{ g.title }}</div>
+              <div class="g-desc">{{ g.description }}</div>
+            </div>
+            <div class="g-updated">{{ g.updated }}</div>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  </div>
+
+  <div class="empty-state" id="empty-state">No guides match your search.</div>
+</section>
+
+<script>
+  const input = document.getElementById('search');
+  const rows = Array.from(document.querySelectorAll('[data-guide-row]'));
+  const cats = Array.from(document.querySelectorAll('[data-category]'));
+  const resultCount = document.getElementById('result-count');
+  const emptyState = document.getElementById('empty-state');
+  const total = rows.length;
+
+  // Collapse/expand: each category's own toggle button controls just itself.
+  cats.forEach(cat => {
+    const toggle = cat.querySelector('.category-toggle');
+    toggle.addEventListener('click', () => {
+      const collapsed = cat.classList.toggle('collapsed');
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+    });
+  });
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    cats.forEach(cat => {
+      const catRows = Array.from(cat.querySelectorAll('[data-guide-row]'));
+      let catShown = 0;
+      catRows.forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.classList.toggle('hidden', !match);
+        if (match) { catShown++; shown++; }
+      });
+      cat.classList.toggle('hidden', catShown === 0);
+      // While actively searching, force open any collapsed category that
+      // has a match — the person is looking for it, don't hide it. This
+      // doesn't touch the manual collapsed state itself, so it's restored
+      // exactly as they left it once the search box is cleared.
+      cat.classList.toggle('force-expanded', q.length > 0 && catShown > 0);
+    });
+    resultCount.textContent = q ? `${shown} of ${total} guides match` : '';
+    emptyState.style.display = (q && shown === 0) ? 'block' : 'none';
+  });
+</script>

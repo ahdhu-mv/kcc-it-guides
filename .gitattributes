@@ -1,0 +1,18 @@
+# Force LF line endings in the repository regardless of any individual
+# contributor's local Git config (core.autocrlf) or editor settings.
+# This matters most for the shell scripts below — a CRLF in a shell
+# script breaks it on Linux with a "bad interpreter" error, and that's
+# exactly where this project actually runs.
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.py text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.j2 text eol=lf
+*.css text eol=lf
+*.conf text eol=lf
+.gitignore text eol=lf
+.dockerignore text eol=lf

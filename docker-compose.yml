@@ -1,0 +1,39 @@
+services:
+  it-guides:
+    build: .
+    container_name: kcc-it-guides
+    restart: unless-stopped
+    ports:
+      - "8090:80"   # change the host port if 8090 is already taken
+    volumes:
+      # Bind-mount the parts you'll actually edit. Any change under these
+      # paths is picked up by the in-container watcher and the live site
+      # rebuilds within a couple of seconds — no `docker compose up
+      # --build`, no restart.
+      - ./content:/site/content
+      - ./categories.yaml:/site/categories.yaml
+      - ./templates:/site/templates
+      - ./assets:/site/assets
+    # If you're fronting this with an existing reverse proxy (nginx/Caddy/
+    # Traefik) on the same Docker host, drop the ports: block above and
+    # attach this to your proxy's network instead, e.g.:
+    # networks:
+    #   - proxy-net
+
+  # --- Optional: sync this project with a GitHub repo automatically ---
+  # Only works if THIS FOLDER is itself a git clone of that repo (not a
+  # zip extract). See deploy/GITHUB_SYNC.md for the full setup — repo
+  # creation, a read-only deploy key, and where its SSH key goes. Once
+  # set up, uncomment this service and run `docker compose up -d --build`.
+  # Editing a guide on GitHub.com then shows up on the live site within
+  # GIT_SYNC_INTERVAL seconds, with no server login needed at all.
+  #
+  # git-sync:
+  #   build: ./deploy/git-sync
+  #   container_name: kcc-it-guides-sync
+  #   restart: unless-stopped
+  #   volumes:
+  #     - .:/repo
+  #     - ./deploy/git-sync/ssh:/root/.ssh:ro
+  #   environment:
+  #     - GIT_SYNC_INTERVAL=60

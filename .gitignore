@@ -1,0 +1,12 @@
+# Build output — always regenerated from content/, never edited by hand
+dist/
+__pycache__/
+*.pyc
+
+# The deploy key for git-sync. This must NEVER be committed — it lives
+# only on the server. See deploy/GITHUB_SYNC.md.
+deploy/git-sync/ssh/
+
+# Editor/OS noise
+.DS_Store
+Thumbs.db

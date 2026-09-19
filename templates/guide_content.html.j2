@@ -1,0 +1,22 @@
+<div class="crumb">
+  <a href="{{ root }}index.html">All guides</a><span class="sep">/</span><a href="{{ root }}index.html">{{ category.name }}</a><span class="sep">/</span>{{ guide.title }}
+</div>
+<div class="guide-layout">
+  <div class="guide-main">
+    <div class="guide-tags"><span class="tag">{{ category.name }}</span></div>
+    <h1>{{ guide.title }}</h1>
+    <div class="guide-updated">Updated {{ guide.updated }} &nbsp;·&nbsp; IT Section</div>
+
+    <div class="guide-body">
+      {{ body_html }}
+    </div>
+  </div>
+  {% if toc %}
+  <div class="guide-toc">
+    <div class="toc-label">On this page</div>
+    {% for item in toc %}
+    <a href="#{{ item.id }}">{{ item.text }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
