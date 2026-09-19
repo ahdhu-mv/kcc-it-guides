@@ -15,3 +15,7 @@
 - slug: access-security
   name: Access & security
   color: "#a2483f"
+
+- slug: server-admin
+  name: Server administration
+  color: "#6a4c93"
