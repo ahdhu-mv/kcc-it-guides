@@ -20,3 +20,59 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+  // Copy-to-clipboard for every code block on this page. Falls back to
+  // the older execCommand approach when the modern Clipboard API isn't
+  // available — which is the case on any plain http:// page, since
+  // browsers restrict navigator.clipboard to secure (https) contexts.
+  (function () {
+    const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+    function fallbackCopy(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(textarea);
+      return ok;
+    }
+
+    function showFeedback(btn, ok) {
+      btn.innerHTML = ok ? (CHECK_ICON + ' Copied!') : (COPY_ICON + ' Failed');
+      btn.classList.toggle('copied', ok);
+      setTimeout(() => {
+        btn.innerHTML = COPY_ICON + ' Copy';
+        btn.classList.remove('copied');
+      }, 1500);
+    }
+
+    Array.from(document.querySelectorAll('.guide-body pre')).forEach(pre => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'code-copy-btn';
+      btn.innerHTML = COPY_ICON + ' Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+      pre.appendChild(btn);
+
+      btn.addEventListener('click', () => {
+        const codeEl = pre.querySelector('code');
+        const text = (codeEl ? codeEl.textContent : pre.textContent).replace(/\n$/, '');
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text)
+            .then(() => showFeedback(btn, true))
+            .catch(() => showFeedback(btn, fallbackCopy(text)));
+        } else {
+          showFeedback(btn, fallbackCopy(text));
+        }
+      });
+    });
+  })();
+</script>

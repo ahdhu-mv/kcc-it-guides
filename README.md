@@ -10,7 +10,8 @@ file.
 
 ```
 kcc-it-guides/
-├── categories.yaml          ← the 4 categories shown on the homepage
+├── config/
+│   └── categories.yaml      ← the categories shown on the homepage
 ├── content/
 │   ├── passwords-accounts/  ← one .md file per guide
 │   ├── applications/
@@ -68,7 +69,7 @@ To remove a guide, delete its `.md` file and rebuild.
 
 ## Adding a new category
 
-Add an entry to `categories.yaml`:
+Add an entry to `config/categories.yaml`:
 
 ```yaml
 - slug: onboarding
@@ -108,7 +109,7 @@ attach it to an existing reverse-proxy network instead — see the
 comments in that file).
 
 **After that first `--build`, you don't need to rebuild again.** The
-container watches `content/`, `categories.yaml`, `templates/` and
+container watches `content/`, `config/`, `templates/` and
 `assets/` (all bind-mounted from this folder — see `volumes:` in
 `docker-compose.yml`) and rebuilds the site itself, in the background,
 usually within about 2 seconds of any change. Add a `.md` file, edit

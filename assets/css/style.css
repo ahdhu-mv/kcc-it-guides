@@ -200,10 +200,11 @@ header.site { border-bottom: 1px solid var(--line); background: var(--paper-rais
 .guide-body img { border: 1px solid var(--line); border-radius: var(--radius); margin: 8px 0 20px; }
 
 .guide-body pre {
+  position: relative;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 15px 18px;
+  padding: 15px 44px 15px 18px;
   overflow-x: auto;
   margin: 0 0 20px;
   max-width: 66ch;
@@ -217,6 +218,36 @@ header.site { border-bottom: 1px solid var(--line); background: var(--paper-rais
   font-family: var(--mono);
   font-size: 13.5px;
   line-height: 1.6;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.code-copy-btn:hover {
+  background: var(--lagoon-dim);
+  color: var(--lagoon);
+  border-color: var(--lagoon);
+}
+.code-copy-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.code-copy-btn.copied {
+  color: var(--lagoon);
+  border-color: var(--lagoon);
+  background: var(--lagoon-dim);
 }
 
 ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 0 0 20px; max-width: 66ch; }
