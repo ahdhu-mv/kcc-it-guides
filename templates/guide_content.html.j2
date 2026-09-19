@@ -54,12 +54,29 @@
     }
 
     Array.from(document.querySelectorAll('.guide-body pre')).forEach(pre => {
+      // If codehilite wrapped this in its own <div class="codehilite">,
+      // wrap that whole div — not just the inner <pre> — so the outer
+      // box styling (border/shadow/radius) applies once, in one place.
+      const target = (pre.parentElement && pre.parentElement.classList.contains('codehilite'))
+        ? pre.parentElement
+        : pre;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-block-wrapper';
+      target.parentNode.insertBefore(wrapper, target);
+
+      const header = document.createElement('div');
+      header.className = 'code-block-header';
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'code-copy-btn';
       btn.innerHTML = COPY_ICON + ' Copy';
       btn.setAttribute('aria-label', 'Copy code to clipboard');
-      pre.appendChild(btn);
+      header.appendChild(btn);
+
+      wrapper.appendChild(header);
+      wrapper.appendChild(target);
 
       btn.addEventListener('click', () => {
         const codeEl = pre.querySelector('code');

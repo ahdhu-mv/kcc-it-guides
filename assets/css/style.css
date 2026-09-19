@@ -199,16 +199,38 @@ header.site { border-bottom: 1px solid var(--line); background: var(--paper-rais
 .guide-body ul, .guide-body ol.plain { max-width: 66ch; font-size: 15.5px; padding-left: 22px; }
 .guide-body img { border: 1px solid var(--line); border-radius: var(--radius); margin: 8px 0 20px; }
 
+.code-block-wrapper {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin: 0 0 20px;
+  max-width: 66ch;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(20, 35, 31, 0.03);
+}
+.code-block-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 6px 8px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
 .guide-body pre {
-  position: relative;
   background: var(--paper-raised);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 15px 44px 15px 18px;
+  padding: 15px 18px;
   overflow-x: auto;
   margin: 0 0 20px;
   max-width: 66ch;
   box-shadow: 0 1px 3px rgba(20, 35, 31, 0.03);
+}
+.code-block-wrapper pre {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  max-width: none;
 }
 .guide-body pre code {
   background: none;
@@ -221,18 +243,15 @@ header.site { border-bottom: 1px solid var(--line); background: var(--paper-rais
 }
 
 .code-copy-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 9px;
+  padding: 4px 9px;
   font-family: var(--sans);
   font-size: 12px;
   font-weight: 500;
   color: var(--ink-soft);
-  background: var(--paper);
+  background: none;
   border: 1px solid var(--line);
   border-radius: 5px;
   cursor: pointer;
