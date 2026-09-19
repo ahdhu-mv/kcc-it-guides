@@ -32,7 +32,7 @@ CONTENT_DIR = ROOT / "content"
 TEMPLATES_DIR = ROOT / "templates"
 ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
-CATEGORIES_FILE = ROOT / "categories.yaml"
+CATEGORIES_FILE = ROOT / "config" / "categories.yaml"
 
 env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
 
