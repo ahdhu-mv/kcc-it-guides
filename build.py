@@ -5,12 +5,14 @@ Builds the KCC IT Guides static site.
 Reads:
   categories.yaml         -- category slugs, display names, colors
   content/<slug>/*.md      -- one guide per file, YAML frontmatter + body
+  content/images/*         -- images referenced from guides (optional)
   templates/*.j2           -- page templates
 
 Writes:
   dist/index.html
   dist/<category-slug>/<guide-slug>.html
   dist/assets/...
+  dist/images/... (if content/images/ exists)
 
 Run:  python3 build.py
 Re-run any time a .md file is added, removed or edited — the whole
@@ -29,6 +31,7 @@ from jinja2 import Environment, FileSystemLoader
 
 ROOT = Path(__file__).parent
 CONTENT_DIR = ROOT / "content"
+IMAGES_DIR = CONTENT_DIR / "images"
 TEMPLATES_DIR = ROOT / "templates"
 ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
@@ -254,6 +257,15 @@ def build():
         shutil.rmtree(DIST_DIR)
     DIST_DIR.mkdir(parents=True)
     shutil.copytree(ASSETS_DIR, DIST_DIR / "assets")
+
+    # Images referenced from guides live in content/images/ and are
+    # referenced with a relative path like ../images/photo.png — every
+    # guide page sits exactly one folder level under dist/, so that
+    # relative path always resolves correctly regardless of category.
+    # This folder is optional: nothing breaks if no one's added an
+    # image yet, since git doesn't track empty directories anyway.
+    if IMAGES_DIR.exists():
+        shutil.copytree(IMAGES_DIR, DIST_DIR / "images")
 
     base_tpl = env.get_template("base.html.j2")
     index_tpl = env.get_template("index_content.html.j2")

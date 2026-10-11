@@ -144,6 +144,9 @@ Or, for a one-off build with no watching: `python3 build.py`.
   prerequisites
 - `::: steps ... :::` — numbered instructions; each item is
   `N. **Title**` followed by an indented explanation line
+- `![Alt text](../images/file.png)` — images; the file goes in
+  `content/images/`, referenced from any guide with that same `../`
+  prefix regardless of category
 - Plain paragraphs — just write normally
 
 ## Editing guides from GitHub instead of the server
