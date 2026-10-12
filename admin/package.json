@@ -1,0 +1,43 @@
+{
+  "name": "kcc-guides-admin",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Department-based editing for the KCC IT Guides site",
+  "scripts": {
+    "dev": "next dev -p 8000",
+    "build": "next build",
+    "start": "next start -p 8000",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tiptap/core": "3.31.4",
+    "@tiptap/extension-code": "3.31.4",
+    "@tiptap/extension-document": "3.31.4",
+    "@tiptap/extension-image": "3.31.4",
+    "@tiptap/extension-link": "3.31.4",
+    "@tiptap/extension-list": "3.31.4",
+    "@tiptap/pm": "3.31.4",
+    "@tiptap/react": "3.31.4",
+    "@tiptap/starter-kit": "3.31.4",
+    "markdown-it": "15.0.2",
+    "next": "16.4.0",
+    "prosemirror-markdown": "1.13.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "14.2.0",
+    "@types/node": "26.6.5",
+    "@types/prosemirror-markdown": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.3"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=22.13"
+  }
+}

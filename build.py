@@ -26,8 +26,10 @@ from datetime import date, datetime
 from pathlib import Path
 
 import markdown
+import nh3
 import yaml
 from jinja2 import Environment, FileSystemLoader
+from markupsafe import Markup
 
 ROOT = Path(__file__).parent
 CONTENT_DIR = ROOT / "content"
@@ -37,7 +39,11 @@ ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
 CATEGORIES_FILE = ROOT / "config" / "categories.yaml"
 
-env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+# autoescape is ON: anything a guide author puts in a title or description
+# (frontmatter) is treated as plain text, never as HTML. Already-rendered
+# HTML (the guide body, the assembled page) is wrapped in Markup() where it
+# is passed to a template, which is the only place it is trusted.
+env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
 
 
 # ---------------------------------------------------------------- helpers
@@ -122,6 +128,44 @@ def protected_sub(pattern, repl_func, text):
     return pattern.sub(wrapper, text)
 
 
+# ------------------------------------------------------- HTML sanitizing
+#
+# Guide bodies are Markdown, and Markdown allows raw HTML. Guides can now
+# be written by several departments, so the rendered HTML is passed through
+# an allow-list before it reaches a page: formatting, links, images and
+# tables survive; <script>, event handlers (onclick=...), iframes, forms,
+# inline styles and javascript: links do not. This is what keeps one
+# editor's mistake (or malice) from running code in every reader's browser.
+
+ALLOWED_TAGS = {
+    "a", "abbr", "b", "blockquote", "br", "code", "del", "details", "div", "em",
+    "h1", "h2", "h3", "h4", "h5", "h6", "hr", "i", "img", "ins", "kbd", "li",
+    "mark", "ol", "p", "pre", "s", "small", "span", "strong", "sub", "summary",
+    "sup", "table", "tbody", "td", "tfoot", "th", "thead", "tr", "u", "ul",
+}
+ALLOWED_ATTRIBUTES = {
+    "*": {"class"},
+    "h1": {"id"}, "h2": {"id"}, "h3": {"id"}, "h4": {"id"}, "h5": {"id"}, "h6": {"id"},
+    "a": {"href", "title"},
+    "img": {"src", "alt", "title", "width", "height", "loading"},
+    "ol": {"start"},
+    "td": {"colspan", "rowspan"}, "th": {"colspan", "rowspan"},
+    "abbr": {"title"},
+}
+ALLOWED_URL_SCHEMES = {"http", "https", "mailto"}
+
+
+def sanitize_html(html: str) -> str:
+    return nh3.clean(
+        html,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        url_schemes=ALLOWED_URL_SCHEMES,
+        link_rel="noopener noreferrer",
+        strip_comments=True,
+    )
+
+
 def render_markdown_body(md_text: str):
     """
     Converts guide body markdown to HTML.
@@ -155,6 +199,8 @@ def render_markdown_body(md_text: str):
 
     for key, rendered in blocks.items():
         html = html.replace(f"<div>{key}</div>", rendered)
+
+    html = sanitize_html(html)
 
     # md.toc_tokens is a flat list of {level, id, name} for every heading
     toc = [
@@ -299,7 +345,7 @@ def build():
         root="",
     )
     (DIST_DIR / "index.html").write_text(
-        base_tpl.render(title="All guides", content=index_content, root="")
+        base_tpl.render(title="All guides", content=Markup(index_content), root="")
     )
     print(f"wrote index.html  ({total_guides} guides across {len(categories)} categories)")
 
@@ -310,9 +356,11 @@ def build():
         for guide in cat["guides"]:
             body_html, toc = render_markdown_body(guide["body_md"])
             guide_content = guide_tpl.render(
-                category=cat, guide=guide, body_html=body_html, toc=toc, root="../"
+                category=cat, guide=guide, body_html=Markup(body_html), toc=toc, root="../"
             )
-            page_html = base_tpl.render(title=guide["title"], content=guide_content, root="../")
+            page_html = base_tpl.render(
+                title=guide["title"], content=Markup(guide_content), root="../"
+            )
             (out_dir / f"{guide['slug']}.html").write_text(page_html)
             print(f"wrote {cat['slug']}/{guide['slug']}.html")
 

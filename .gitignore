@@ -10,3 +10,8 @@ deploy/git-sync/ssh/
 # Editor/OS noise
 .DS_Store
 Thumbs.db
+
+# Admin app secrets and runtime data (never commit)
+admin/.env
+admin/data/
+admin/ssh/
