@@ -22,7 +22,7 @@ export type RepoOptions = {
   syncTtlMs: number;
 };
 
-class Mutex {
+export class Mutex {
   private tail: Promise<void> = Promise.resolve();
   async run<T>(fn: () => Promise<T>): Promise<T> {
     const prev = this.tail;
@@ -37,7 +37,17 @@ class Mutex {
   }
 }
 
-export class GitRepo {
+/** What the rest of the app needs from wherever the guides are stored. */
+export interface GuideStore {
+  readonly dir: string;
+  read<T>(fn: (root: string) => T, force?: boolean): Promise<T>;
+  publish<T>(
+    message: string, author: { name: string; email: string },
+    mutate: (root: string) => T | Promise<T>,
+  ): Promise<T>;
+}
+
+export class GitRepo implements GuideStore {
   private mutex = new Mutex();
   private lastSync = 0;
 

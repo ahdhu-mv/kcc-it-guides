@@ -92,12 +92,19 @@ export class Client {
   }
 }
 
-export async function makeWorld(): Promise<World> {
+/** `local` = guides are plain files in a site folder (no git), like the real docker02 setup. */
+export async function makeWorld(local = false): Promise<World> {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "kcc-admin-"));
   const bare = makeRemote(tmp);
+  let siteDir = "";
+  if (local) {
+    siteDir = path.join(tmp, "site");
+    git(undefined, "clone", "-q", bare, siteDir);
+    fs.rmSync(path.join(siteDir, ".git"), { recursive: true, force: true });
+  }
   const fake = await startFakeAuthelia();
   const cfg = loadConfig({
-    DATA_DIR: path.join(tmp, "data"), REPO_URL: bare, PUBLIC_URL: ORIGIN, AUTH_PORTAL_URL: "https://auth.kcc.com",
+    DATA_DIR: path.join(tmp, "data"), ...(local ? { SITE_DIR: siteDir } : { REPO_URL: bare }), PUBLIC_URL: ORIGIN, AUTH_PORTAL_URL: "https://auth.kcc.com",
     AUTHELIA_URL: fake.url, ADMIN_USERS: "a242775", SECRET_KEY: "test-secret", SYNC_TTL_SECONDS: "0",
     PYTHON_BIN: PYTHON,
   });

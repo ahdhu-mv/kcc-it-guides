@@ -1,9 +1,14 @@
 #!/bin/sh
-# Runs as root only long enough to copy the (read-only mounted) deploy key and
-# known_hosts into a private place, then drops to the unprivileged user.
+# Runs as root only long enough to (a) match the app's user to the owner of the site folder
+# so it can write the guides, and (b) optionally install a GitHub deploy key, then drops privileges.
 set -eu
+if [ -n "${APP_UID:-}" ] && [ "${APP_UID}" != "0" ]; then
+  groupmod -o -g "${APP_GID:-$APP_UID}" guides
+  usermod -o -u "${APP_UID}" guides
+  chown guides:guides /home/guides
+fi
 mkdir -p /data
-chown guides:guides /data
+chown -R guides:guides /data
 if [ -f /ssh/id_ed25519 ]; then
   install -d -m 700 -o guides -g guides /home/guides/.ssh
   install -m 600 -o guides -g guides /ssh/id_ed25519 /home/guides/.ssh/id_ed25519

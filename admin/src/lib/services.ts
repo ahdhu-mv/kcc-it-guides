@@ -1,16 +1,19 @@
 import path from "node:path";
 import { loadConfig, type Config } from "./config";
 import { Db } from "./db";
-import { GitRepo } from "./repo";
+import { LocalStore } from "./localstore";
+import { GitRepo, type GuideStore } from "./repo";
 
-export type Services = { cfg: Config; db: Db; repo: GitRepo };
+export type Services = { cfg: Config; db: Db; repo: GuideStore };
 
 const KEY = Symbol.for("kcc.guides.admin.services");
 type G = typeof globalThis & { [KEY]?: Services };
 
 export function createServices(cfg: Config): Services {
   const db = new Db(path.join(/* turbopackIgnore: true */ cfg.dataDir, "admin.db"));
-  const repo = new GitRepo({
+  const repo: GuideStore = cfg.siteDir
+    ? new LocalStore({ dir: cfg.siteDir, historyDir: path.join(/* turbopackIgnore: true */ cfg.dataDir, "history"), keepHistory: 500 })
+    : new GitRepo({
     dir: path.join(/* turbopackIgnore: true */ cfg.dataDir, "repo"),
     url: cfg.repoUrl,
     branch: cfg.repoBranch,

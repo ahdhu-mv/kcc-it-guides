@@ -4,6 +4,8 @@ import path from "node:path";
 
 export type Config = {
   dataDir: string;
+  /** Set = guides are plain files in this folder (no git). Empty = a GitHub clone. */
+  siteDir: string;
   repoUrl: string;
   repoBranch: string;
   gitSshCommand: string;
@@ -46,12 +48,15 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     }
   }
 
+  const siteDir = (env.SITE_DIR ?? "").trim() ? path.resolve(/* turbopackIgnore: true */ env.SITE_DIR!.trim()) : "";
+
   const publicUrl = need(env, "PUBLIC_URL").replace(/\/+$/, "");
   if (!/^https?:\/\//.test(publicUrl)) throw new Error("PUBLIC_URL must start with http:// or https://");
 
   return {
     dataDir,
-    repoUrl: need(env, "REPO_URL"),
+    siteDir,
+    repoUrl: siteDir ? "" : need(env, "REPO_URL"),
     repoBranch: (env.REPO_BRANCH ?? "main").trim(),
     gitSshCommand: (env.GIT_SSH_COMMAND ?? "").trim(),
     publicUrl,
