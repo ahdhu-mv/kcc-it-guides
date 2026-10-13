@@ -1,4 +1,4 @@
-# KCC IT Guides
+# KCC Guides
 
 A static internal knowledge base for the IT Section. You write guides as
 plain Markdown files; a small build script turns them into the full site —

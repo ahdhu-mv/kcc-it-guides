@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ title }} — KCC IT Guides</title>
+<title>{{ title }} — KCC Guides</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -15,10 +15,11 @@
   <div class="site-bar">
     <a class="brand" href="{{ root }}index.html">
       <span class="mark">KCC</span>
-      <span class="name">IT Guides</span>
+      <span class="name">KCC Guides</span>
     </a>
     <nav class="site-nav">
       <a href="{{ root }}index.html">All guides</a>
+      {% if admin_url %}<a href="{{ admin_url }}" class="admin-link">Admin</a>{% endif %}
     </nav>
   </div>
 </header>

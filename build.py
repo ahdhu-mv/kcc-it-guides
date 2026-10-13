@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the KCC IT Guides static site.
+Builds the KCC Guides static site.
 
 Reads:
   categories.yaml         -- category slugs, display names, colors
@@ -44,6 +44,10 @@ CATEGORIES_FILE = ROOT / "config" / "categories.yaml"
 # HTML (the guide body, the assembled page) is wrapped in Markup() where it
 # is passed to a template, which is the only place it is trusted.
 env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)), autoescape=True)
+
+# Where the "Admin" link in the top bar points (the guides admin app).
+# Set ADMIN_URL to an empty value to hide the link.
+env.globals["admin_url"] = os.environ.get("ADMIN_URL", "https://guides-admin.kcc.com").strip()
 
 
 # ---------------------------------------------------------------- helpers
