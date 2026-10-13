@@ -14,6 +14,7 @@ main.wrap{padding-top:24px;padding-bottom:64px}
 nav{display:flex;gap:16px;flex-wrap:wrap;flex:1}
 nav a{text-decoration:none;color:var(--ink)}nav a:hover{color:var(--lagoon)}
 .who{color:var(--muted);font-size:.9rem}.who em{font-style:normal;background:var(--lagoon);color:#fff;border-radius:4px;padding:0 6px;font-size:.75rem}
+a.signout{color:var(--ink);text-decoration:none;font-size:.9rem;border:1px solid var(--line);border-radius:6px;padding:3px 10px}a.signout:hover{color:var(--lagoon);border-color:var(--lagoon)}
 h1{font-family:var(--serif);font-size:1.7rem;margin:.2em 0 .5em}
 h2{font-family:var(--serif);font-size:1.2rem;margin:.2em 0 .5em}
 .muted{color:var(--muted);font-size:.92em}

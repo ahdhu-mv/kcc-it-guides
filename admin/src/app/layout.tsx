@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { session } = await getSession();
   const user = session?.user;
-  const site = getServices().cfg.guidesSiteUrl;
+  const { guidesSiteUrl: site, authPortalUrl } = getServices().cfg;
+  // Authelia ends the single sign-on session, then sends the person to the public guides site.
+  const signOut = `${authPortalUrl}/logout?rd=${encodeURIComponent(site + "/")}`;
   return (
     <html lang="en">
       <head>{session && <meta name="csrf-token" content={session.csrf} />}</head>
@@ -31,6 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <span className="who" title={user.username}>
                   {user.name}{user.isAdmin && <> <em>admin</em></>}
                 </span>
+                <a className="signout" href={signOut}>Sign out</a>
               </>
             )}
           </div>
