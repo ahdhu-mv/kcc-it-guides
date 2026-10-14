@@ -24,6 +24,7 @@ export type Config = {
   authCacheTtlMs: number;
   maxBodyBytes: number;
   maxImageBytes: number;
+  maxFileBytes: number;
   pythonBin: string;
   previewScript: string;
 };
@@ -75,6 +76,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     authCacheTtlMs: 20_000,
     maxBodyBytes: 200_000,
     maxImageBytes: 5_000_000,
+    maxFileBytes: Number(env.MAX_FILE_MB ?? 10) * 1_000_000,
     pythonBin: env.PYTHON_BIN ?? "python3",
     previewScript: env.PREVIEW_SCRIPT ?? path.resolve(/* turbopackIgnore: true */ process.cwd(), "preview/preview.py"),
   };

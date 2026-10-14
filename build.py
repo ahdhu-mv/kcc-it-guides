@@ -34,6 +34,7 @@ from markupsafe import Markup
 ROOT = Path(__file__).parent
 CONTENT_DIR = ROOT / "content"
 IMAGES_DIR = CONTENT_DIR / "images"
+FILES_DIR = CONTENT_DIR / "files"
 TEMPLATES_DIR = ROOT / "templates"
 ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
@@ -316,6 +317,11 @@ def build():
     # image yet, since git doesn't track empty directories anyway.
     if IMAGES_DIR.exists():
         shutil.copytree(IMAGES_DIR, DIST_DIR / "images")
+
+    # Downloadable attachments (PDF, Word, Excel, ...) added through the
+    # admin app live in content/files/ and are linked as ../files/<cat>/<name>.
+    if FILES_DIR.exists():
+        shutil.copytree(FILES_DIR, DIST_DIR / "files")
 
     base_tpl = env.get_template("base.html.j2")
     index_tpl = env.get_template("index_content.html.j2")

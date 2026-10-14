@@ -18,6 +18,7 @@ type Props = {
   initial: { title: string; description: string; slug: string; body: string; baseHash: string };
 };
 
+type Attached = { path: string; href: string; text: string; markdown: string };
 type Upload = { path: string; src: string; alt: string; markdown: string };
 
 const slugFromTitle = (t: string) =>
@@ -52,6 +53,7 @@ export function GuideEditor({ category, mode, initial }: Props) {
   const submitted = useRef(false);
   const textarea = useRef<HTMLTextAreaElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
+  const attachInput = useRef<HTMLInputElement>(null);
   const uploadRef = useRef<(f: File) => Promise<Upload | null>>(async () => null);
 
   // ------------------------------------------------------------ visual editor
@@ -69,9 +71,12 @@ export function GuideEditor({ category, mode, initial }: Props) {
         return true;
       },
       handleDrop(_view, event) {
-        const file = Array.from((event as DragEvent).dataTransfer?.files ?? []).find((f) => f.type.startsWith("image/"));
-        if (!file) return false;
-        void insertPicture(file);
+        const files = Array.from((event as DragEvent).dataTransfer?.files ?? []);
+        const file = files.find((f) => f.type.startsWith("image/"));
+        if (file) { void insertPicture(file); return true; }
+        const doc = files.find((f) => /\.(pdf|docx?|xlsx?|pptx?|txt|csv)$/i.test(f.name));
+        if (!doc) return false;
+        void attachFile(doc);
         return true;
       },
     },
@@ -110,6 +115,24 @@ export function GuideEditor({ category, mode, initial }: Props) {
       editor.chain().focus().setImage({ src: up.src, alt: up.alt }).run();
     } else {
       insertAtCursor(`\n\n${up.markdown}\n\n`);
+    }
+  }
+
+  async function attachFile(file: File) {
+    setStatus("Uploading file…");
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await callApi<Attached>("POST", `/api/attachments/${category.slug}`, fd);
+    if (!r.ok) { setStatus(r.error); return; }
+    setStatus("File attached.");
+    dirty.current = true;
+    if (view === "visual" && editor) {
+      leaveCustomBlock(editor);
+      editor.chain().focus().insertContent({
+        type: "text", text: r.data.text, marks: [{ type: "link", attrs: { href: r.data.href } }],
+      }).run();
+    } else {
+      insertAtCursor(r.data.markdown);
     }
   }
 
@@ -312,6 +335,7 @@ export function GuideEditor({ category, mode, initial }: Props) {
             {btn("Note box", "Highlighted note", () => editor && insertCallout(editor), false, blockDis)}
             {btn("Steps", "Numbered steps", () => editor && insertSteps(editor), false, blockDis)}
             {btn("Picture", "Upload a picture", () => fileInput.current?.click(), false, dis)}
+            {btn("Attach file", "Attach a PDF, Word, Excel, PowerPoint, text or CSV file (max 10 MB)", () => attachInput.current?.click(), false, dis)}
             {inCustom === "steps" && (
               <>
                 <span className="sep" />
@@ -362,6 +386,7 @@ export function GuideEditor({ category, mode, initial }: Props) {
             {btn("Note box", "Highlighted note", () => mdBlock("::: callout Note\nWrite the tip or warning here.\n:::"))}
             {btn("Steps", "Numbered steps", () => mdBlock("::: steps\n1. **First step**\n   What to do.\n\n2. **Second step**\n   What to do.\n:::"))}
             {btn("Picture", "Upload a picture", () => fileInput.current?.click())}
+            {btn("Attach file", "Attach a PDF, Word, Excel, PowerPoint, text or CSV file (max 10 MB)", () => attachInput.current?.click())}
             <span className="status" aria-live="polite">{status}</span>
           </div>
           <div className="panes">
@@ -378,6 +403,9 @@ export function GuideEditor({ category, mode, initial }: Props) {
 
       <input ref={fileInput} type="file" hidden accept="image/png,image/jpeg,image/gif,image/webp"
         onChange={(e) => { const f = e.target.files?.[0]; if (f) void insertPicture(f); e.target.value = ""; }} />
+
+      <input ref={attachInput} type="file" hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void attachFile(f); e.target.value = ""; }} />
 
       <div className="row sticky-actions">
         {conflict !== null && (

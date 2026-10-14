@@ -16,7 +16,7 @@ export { Conflict, ValidationError };
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,59}$/;
 export const RESERVED_SLUGS = new Set([
   "images", "general", "assets", "config", "admin", "templates", "dist",
-  "deploy", "static", "api", "d", "c", "img", "healthz", "help",
+  "deploy", "static", "api", "d", "c", "img", "healthz", "help", "files", "dl",
 ]);
 export const GENERAL = "general"; // guides placed directly in content/ (no category folder)
 const COLOR_RE = /^#[0-9a-fA-F]{6}$/;

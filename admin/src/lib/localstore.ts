@@ -19,9 +19,19 @@ export type LocalStoreOptions = { dir: string; historyDir: string; keepHistory: 
 /** The only places the app may change, relative to the site folder. */
 const TRACKED = ["content", "config"];
 
-type Snapshot = Map<string, Buffer>;
+/**
+ * Small files are held in memory. Big ones (attachments, pictures) are not read at all:
+ * they are recorded by size and time, and a hard link (or copy) keeps the old content
+ * safe in content/.keep/ until the change is finished. Big files are only ever added or
+ * removed, never edited in place, so a link is a faithful backup.
+ */
+const SMALL = 1_000_000;
+const KEEP = path.join("content", ".keep");
 
-function walk(root: string, rel: string, out: Snapshot): void {
+type Entry = { size: number; mtimeMs: number; data?: Buffer; keep?: string };
+type Snapshot = Map<string, Entry>;
+
+function walk(root: string, rel: string, out: Snapshot, keepDir: string | null): void {
   const abs = path.join(root, rel);
   let entries: fs.Dirent[];
   try {
@@ -31,35 +41,65 @@ function walk(root: string, rel: string, out: Snapshot): void {
   }
   for (const e of entries) {
     const r = path.join(rel, e.name);
-    if (e.isDirectory()) walk(root, r, out);
-    else if (e.isFile()) out.set(r, fs.readFileSync(path.join(root, r)));
+    if (r === KEEP) continue;
+    if (e.isDirectory()) walk(root, r, out, keepDir);
+    else if (e.isFile()) {
+      const full = path.join(root, r);
+      const st = fs.statSync(full);
+      if (st.size <= SMALL) {
+        out.set(r, { size: st.size, mtimeMs: st.mtimeMs, data: fs.readFileSync(full) });
+      } else {
+        const entry: Entry = { size: st.size, mtimeMs: st.mtimeMs };
+        if (keepDir) {
+          const link = path.join(keepDir, r);
+          fs.mkdirSync(path.dirname(link), { recursive: true });
+          try { fs.linkSync(full, link); } catch { fs.copyFileSync(full, link); }
+          entry.keep = link;
+        }
+        out.set(r, entry);
+      }
+    }
   }
 }
 
-function snapshot(root: string): Snapshot {
+function snapshot(root: string, withKeep = false): Snapshot {
   const out: Snapshot = new Map();
-  for (const t of TRACKED) walk(root, t, out);
+  const keepDir = withKeep ? path.join(root, KEEP) : null;
+  if (keepDir) {
+    fs.rmSync(keepDir, { recursive: true, force: true }); // leftovers from a crash
+    fs.mkdirSync(keepDir, { recursive: true });
+  }
+  for (const t of TRACKED) walk(root, t, out, keepDir);
   return out;
+}
+
+function same(a: Entry, b: Entry): boolean {
+  if (a.data && b.data) return a.data.equals(b.data);
+  if (a.data || b.data) return false;
+  return a.size === b.size && a.mtimeMs === b.mtimeMs;
 }
 
 type Change = { kind: "A" | "M" | "D"; file: string };
 
 function diff(before: Snapshot, after: Snapshot): Change[] {
   const changes: Change[] = [];
-  for (const [file, data] of after) {
+  for (const [file, entry] of after) {
     const old = before.get(file);
     if (!old) changes.push({ kind: "A", file });
-    else if (!old.equals(data)) changes.push({ kind: "M", file });
+    else if (!same(old, entry)) changes.push({ kind: "M", file });
   }
   for (const file of before.keys()) if (!after.has(file)) changes.push({ kind: "D", file });
   return changes.sort((a, b) => a.file.localeCompare(b.file));
 }
 
-function writeAtomic(file: string, data: Buffer): void {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(tmp, data);
-  fs.renameSync(tmp, file);
+/** Write the content of a snapshot entry to `dest` (atomically). */
+function put(dest: string, entry: Entry): void {
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
+  const tmp = `${dest}.${process.pid}.tmp`;
+  if (entry.data) fs.writeFileSync(tmp, entry.data);
+  else if (entry.keep) fs.copyFileSync(entry.keep, tmp);
+  else return;
+  fs.renameSync(tmp, dest);
 }
 
 export class LocalStore implements GuideStore {
@@ -85,7 +125,7 @@ export class LocalStore implements GuideStore {
   ): Promise<T> {
     return this.mutex.run(async () => {
       const root = this.opts.dir;
-      const before = snapshot(root);
+      const before = snapshot(root, true);
       try {
         const result = await mutate(root);
         this.remember(before, snapshot(root), message, author.name);
@@ -93,6 +133,8 @@ export class LocalStore implements GuideStore {
       } catch (err) {
         this.restore(before);
         throw err;
+      } finally {
+        fs.rmSync(path.join(root, KEEP), { recursive: true, force: true });
       }
     });
   }
@@ -101,9 +143,9 @@ export class LocalStore implements GuideStore {
   private restore(before: Snapshot): void {
     const root = this.opts.dir;
     const now = snapshot(root);
-    for (const [file, data] of before) {
+    for (const [file, entry] of before) {
       const cur = now.get(file);
-      if (!cur || !cur.equals(data)) writeAtomic(path.join(root, file), data);
+      if (!cur || !same(cur, entry)) put(path.join(root, file), entry);
     }
     for (const file of now.keys()) if (!before.has(file)) fs.rmSync(path.join(root, file), { force: true });
   }
@@ -119,7 +161,7 @@ export class LocalStore implements GuideStore {
       fs.mkdirSync(dir, { recursive: true });
       for (const c of changes) {
         const old = before.get(c.file);
-        if (old) writeAtomic(path.join(dir, "before", c.file), old);
+        if (old) put(path.join(dir, "before", c.file), old);
       }
       const summary = [message.split("\n")[0], `by ${who}`, "", ...changes.map((c) => `${c.kind} ${c.file.split(path.sep).join("/")}`), ""];
       fs.writeFileSync(path.join(dir, "changes.txt"), summary.join("\n"));
